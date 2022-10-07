@@ -1,0 +1,34 @@
+
+    @RequestMapping(method = RequestMethod.GET, value = "/update")
+    public String updateUser(ModelMap modelMap, HttpServletResponse response, HttpServletRequest request) {
+
+        return "updateuser";
+    }
+
+    private static String saveUploadedFile( MultipartFile file, Long userId){
+        try {
+            String path = SysProperties.getBaseDir()+"/images/profile-image/"+userId+".jpeg";
+            file.transferTo( new File(path));
+            return "/images/profile-image/"+userId+".jpeg";
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return  null;
+    }
+
+
+    @RequestMapping(method = RequestMethod.POST, value = "/profile-image/upload")
+    public ResponseEntity<?> uploadFile(
+            @RequestParam("file") MultipartFile uploadfile, HttpServletRequest request) {
+        if (uploadfile.isEmpty()) {
+            return new ResponseEntity("please select a file!", HttpStatus.OK);
+        }
+        String path = "";
+        try {
+            Long currentMemberId = ControllerUtils.getUserId(request);
+            path = saveUploadedFile(uploadfile,currentMemberId);
+        } catch (Exception e) {
+            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity(path, new HttpHeaders(), HttpStatus.OK);
+    }
